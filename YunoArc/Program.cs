@@ -18,7 +18,7 @@ namespace YunoArc
             switch (mode)
             {
                 case "-u":
-                    var outputDirectory = args.Length >= 3 ? args[2] : Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path));
+                    var outputDirectory = args.Length >= 3 ? args[2] : Path.Combine(Path.GetDirectoryName(path) + "_UNPACK", Path.GetFileNameWithoutExtension(path));
 
                     if (!Directory.Exists(outputDirectory))
                         Directory.CreateDirectory(outputDirectory);
@@ -76,7 +76,7 @@ namespace YunoArc
                     break;
 
                 case "-p":
-                    var outputPath = args.Length >= 3 ? args[2] : path;
+                    var outputPath = args.Length >= 3 ? args[2] : path + "_PACK";
                     var inputFilePaths = Directory.GetFiles(path)
                         .Select(x => GetPackOrderByFileName(x))
                         .OrderBy(x => x.Order)
