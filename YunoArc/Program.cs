@@ -1,7 +1,10 @@
-﻿using System;
+﻿// #define USE_SORT_ORDER
+using System;
 using System.Collections.Generic;
 using System.IO;
+#if USE_SORT_ORDER
 using System.Linq;
+#endif
 
 namespace YunoArc
 {
@@ -69,7 +72,11 @@ namespace YunoArc
                                     break;
                             }
 
+#if USE_SORT_ORDER
                             File.WriteAllBytes(Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(file.Name)}@{i}{extension}"), bytes);
+#else
+                            File.WriteAllBytes(Path.Combine(outputDirectory, file.Name), bytes);
+#endif
                         }
                     }
 
@@ -77,12 +84,17 @@ namespace YunoArc
 
                 case "-p":
                     var outputPath = args.Length >= 3 ? args[2] : path + "_PACK";
-                    var inputFilePaths = Directory.GetFiles(path)
+                    var inputFilePaths =
+#if USE_SORT_ORDER
+                        Directory.GetFiles(path)
                         .Select(x => GetPackOrderByFileName(x))
                         .OrderBy(x => x.Order)
                         .ThenBy(x => x.Name)
                         .Select(x => x.Name)
                         .ToArray();
+#else
+                        Directory.GetFiles(path);
+#endif
 
                     using (var stream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
                     using (var writer = new BinaryWriter(stream))
@@ -122,8 +134,10 @@ namespace YunoArc
                             var size = bytes.Length;
                             var position = currentPosition - basePosition;
 
+#if USE_SORT_ORDER
                             if (name.Contains("@"))
                                 name = name.Substring(0, name.IndexOf("@")) + Path.GetExtension(name);
+#endif
 
                             writer.WriteStringEncrypted(name, 12);
                             writer.WriteUInt16Encrypted((ushort)((size >> 16) & 0xFFFF));
@@ -144,6 +158,7 @@ namespace YunoArc
             return 0;
         }
 
+#if USE_SORT_ORDER
         private static OrderData GetPackOrderByFileName(string path)
         {
             // "name@order.ext"
@@ -161,6 +176,7 @@ namespace YunoArc
 
             return new OrderData(path, order);
         }
+#endif
 
         private static int Error(string message)
         {
